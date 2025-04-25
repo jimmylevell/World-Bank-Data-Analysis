@@ -1,0 +1,6 @@
+requests
+pandas
+torch
+transformers
+tqdm
+keyword-spacy
