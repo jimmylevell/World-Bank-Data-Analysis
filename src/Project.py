@@ -79,6 +79,7 @@ class Project:
         self.public_disclosure_date = public_disclosure_date
 
         self.documents = []
+        self.all_documents = []
 
     @staticmethod
     def from_dict(projectId, data):
@@ -188,6 +189,12 @@ class Project:
                 # Write the data
                 writer.writerow(document.to_csv_entry())
 
+    def get_number_of_filtered_documents(self):
+        return len(self.documents)
+
+    def get_number_of_all_documents(self):
+        return len(self.all_documents)
+
     def __str__(self):
         return f"Project ID: {self.proj_id}, Project Name: {self.project_name}, Country: {self.countryshortname}, " \
                f"Region: {self.regionname}, Approval Date: {self.boardapprovaldate}, " \
@@ -218,7 +225,8 @@ class Project:
             "cons_serv_reqd_ind_exact", "curr_total_commitment",
             "countryhomepageurl", "curr_ida_commitment",
             "parentprojid", "parentprojid_exact",
-            "projid_id_display", "public_disclosure_date"
+            "projid_id_display", "public_disclosure_date",
+            "number_of_documents", "number_of_all_documents"
         ]
 
     def to_csv_entry(self):
@@ -246,5 +254,6 @@ class Project:
             str(self.cons_serv_reqd_ind_exact), str(self.curr_total_commitment),
             str(self.countryhomepageurl), str(self.curr_ida_commitment),
             str(self.parentprojid), str(self.parentprojid_exact),
-            str(self.projid_id_display), str(self.public_disclosure_date)
+            str(self.projid_id_display), str(self.public_disclosure_date),
+            str(self.get_number_of_filtered_documents()), str(self.get_number_of_all_documents())
         ]

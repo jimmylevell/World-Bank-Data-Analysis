@@ -43,16 +43,35 @@ def get_project_documents(project_id: str):
         return None
 
 
-def filter_documents(projects):
-    filtered_projects = []
-    first = False
-    for project in projects:
-        # TO-DO
-        # improve the filtering logic to check if the document is not already in the list
-        if not first:
-            first = True
-            filtered_projects.append(project)
-    return filtered_projects
+def filter_documents(documents):
+    filtered_documents = []
+
+    if documents is None or len(documents) == 0:
+        logger.warning("No documents found to filter.")
+        return filtered_documents
+
+    if len(documents) == 1:
+        logger.info("Only one document found, no filtering needed.")
+        return documents
+
+    # get all document types for logging
+    document_types = set()
+    for document in documents:
+        document_types.add(document['docty'])
+    logger.info("Document types: " + str(document_types))
+
+    # filter out non-project paper documents
+    for document in documents:
+        if document['docty'] in ['Project Paper']:
+            filtered_documents.append(document)
+
+    if len(filtered_documents) == 0:
+        logger.warning("No documents found after filtering.")
+        logger.warning(str(document_types))
+        return documents
+    else:
+        logger.info(f"Filtered documents: {len(filtered_documents)} out of {len(documents)}")
+        return filtered_documents
 
 def read_csv(file_path):
     df = pd.read_csv(file_path, encoding='utf-8')
@@ -91,8 +110,8 @@ if __name__ == "__main__":
 
         if project_data:
             project = Project.from_dict(project_id, project_data)
-            projects.append(project)
             project_documents = get_project_documents(project_id)
+            project.all_documents = project_documents
             project_documents = filter_documents(project_documents)
 
             if project_documents and len(project_documents) > 0:
@@ -107,6 +126,7 @@ if __name__ == "__main__":
                     document.export_document_text("./export/" + project_id + "/" + document.id + ".txt")
 
                 project.documents = documents
+                projects.append(project)
                 project.export_documents_to_csv("./export/" + project_id + "/_overview_documents.csv")
             else:
                 logger.warning(f"No documents found for project ID: {project_id}")
