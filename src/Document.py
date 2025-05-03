@@ -94,8 +94,7 @@ class Document:
         sdgs = sdg_extractor.classify_sdg(self.text)
         self.sdgs = sdgs
         self.sdg = sdgs.iloc[0]["document_top_sdg"]
-        sdgs = pd.DataFrame()
-        logger.info(f"Extracted SDGs: {sdgs.head()}")
+        logger.info(f"Extracted SDGs: {self.sdgs.head()}")
         logger.info(f"Top SDG: {self.sdg}")
         return sdgs
 
