@@ -1,6 +1,9 @@
 import spacy
+import logging
 
 from keyword_spacy import KeywordExtractor
+
+logger = logging.getLogger()
 
 class KeyWordExtraction():
     def __init__(self, model="en_core_web_md", top_n=10, min_ngram=3, max_ngram=3, strict=True):
@@ -16,7 +19,7 @@ class KeyWordExtraction():
         doc = self.nlp(text)
         keywords = doc._.keywords
 
-        print("Found # keywords:" + str(len(keywords)))
+        logger.info("Found # keywords:" + str(len(keywords)))
         list_keywords = []
         for keyword in keywords:
             list_keywords.append(keyword[0])

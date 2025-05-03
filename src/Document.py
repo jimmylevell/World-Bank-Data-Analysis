@@ -1,6 +1,10 @@
 import os
 import requests
+import logging
+
 import pandas as pd
+
+logger = logging.getLogger()
 
 class Document:
     def __init__(self, id, projectId, docna, docty, lang, entityids, docdt, display_title, pdfurl,
@@ -55,44 +59,44 @@ class Document:
 
     def get_document_text(self):
         if not self.pdfurl:
-            print("No PDF URL available.")
+            logger.warning("No PDF URL available.")
             return None
-        else:
-            print(f"Fetching document text from {self.pdfurl}")
 
+        logger.info(f"Fetching document text from {self.pdfurl}")
         document_url = self.pdfurl.replace("pdf", "txt")
         try:
             response = requests.get(document_url)
             if response.status_code == 200:
                 self.text = response.text
             else:
-                print(f"Error fetching document text from {document_url}: {response.status_code}")
+                logger.error(f"Error fetching document text from {document_url}: {response.status_code}")
                 return None
         except requests.exceptions.RequestException as e:
-            print(f"Error fetching document text: {e}")
+            logger.error(f"Error fetching document text: {e}")
             return None
 
     def extract_keywords(self, keyword_extractor):
         if not self.text:
-            print("No text available to extract keywords.")
+            logger.warning("No text available to extract keywords.")
             return None
 
         keywords = keyword_extractor.extract_keywords(self.text)
         self.keywords = keywords
-        print(f"Extracted keywords: {self.keywords}")
+        logger.info(f"Extracted keywords: {self.keywords}")
         return keywords
 
     def extract_sdg(self, sdg_extractor):
         if not self.text:
-            print("No text available to extract SDGs.")
+            logger.warning("No text available to extract SDGs.")
             return None
 
+        # To do improve text length
         sdgs = sdg_extractor.classify_sdg(self.text)
         self.sdgs = sdgs
         self.sdg = sdgs.iloc[0]["document_top_sdg"]
         sdgs = pd.DataFrame()
-        print(f"Extracted SDGs: {sdgs.head()}")
-        print(f"Top SDG: {self.sdg}")
+        logger.info(f"Extracted SDGs: {sdgs.head()}")
+        logger.info(f"Top SDG: {self.sdg}")
         return sdgs
 
     def export_document_text(self, fileName):

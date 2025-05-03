@@ -1,6 +1,11 @@
+# Virtual Env
 querypdf
+
+# External data
 export
 import
-
-__pycache__
 models
+
+# Data of no value
+__pycache__
+*.log
