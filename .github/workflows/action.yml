@@ -29,7 +29,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          target: levell-wbda-deploy
+          target: levell-wbda-train
           tags: |
             ghcr.io/jimmylevell/world-bank-data-analysis/levell_wbda:latest
       - name: Build and push levell wbda docker
