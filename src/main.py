@@ -1,5 +1,6 @@
 import requests
 import logging
+import spacy
 
 import pandas as pd
 
@@ -86,6 +87,9 @@ if __name__ == "__main__":
         encoding='utf-8',
         format='%(asctime)s %(levelname)-8s %(message)s'
     )
+
+    # load spacy
+    nlp = spacy.load("en_core_web_md")
 
     console = logging.StreamHandler()
     console.setLevel(logging.INFO)

@@ -1,0 +1,41 @@
+name: Publish levell wbda docker image
+
+on:
+  # Trigger the workflow on push
+  # but only for the master branch
+  push:
+    branches:
+      - master
+
+jobs:
+  push_to_registry:
+    name: Push levell wbda docker images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push levell wbda docker
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          target: levell-wbda-deploy
+          tags: |
+            ghcr.io/jimmylevell/world-bank-data-analysis/levell_wbda:latest
+      - name: Build and push levell wbda docker
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          target: levell-wbda-train
+          tags: |
+            ghcr.io/jimmylevell/world-bank-data-analysis/levell_wbda_train:latest
