@@ -109,7 +109,7 @@ if __name__ == "__main__":
     logger.info("Starting to process projects and documents...")
     for index, row in worldBankExport.iterrows():
         project_id = row['Project Id']
-        logger.info(f"Processing Project ID: {project_id}")
+        logger.info(f"Processing Project ID: {project_id}. #{index + 1} of {len(worldBankExport)}")
         project_data = get_project_data(project_id)
 
         if project_data:
