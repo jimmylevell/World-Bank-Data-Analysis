@@ -63,7 +63,7 @@ def filter_documents(documents):
 
     # filter out non-project paper documents
     for document in documents:
-        if document['docty'] in ['Project Paper']:
+        if ("docty" in document) and (document['docty'] in ['Project Paper']):
             filtered_documents.append(document)
 
     if len(filtered_documents) == 0:
