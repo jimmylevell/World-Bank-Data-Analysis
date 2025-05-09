@@ -5,6 +5,10 @@ from keyword_spacy import KeywordExtractor
 
 logger = logging.getLogger()
 
+# ensure that MODEL_MAX_LEN respected
+# Max length of the model input is 1000000, we decreased because of the performance
+MODEL_MAX_LEN = 100000
+
 class KeyWordExtraction():
     def __init__(self, model="en_core_web_md", top_n=10, min_ngram=3, max_ngram=3, strict=True):
         self.nlp = spacy.load(model)
@@ -16,9 +20,6 @@ class KeyWordExtraction():
         self.nlp.add_pipe("keyword_extractor", last=True, config={"top_n": top_n, "min_ngram": min_ngram, "max_ngram": max_ngram, "strict": strict})
 
     def extract_keywords(self, text):
-        # ensure that MODEL_MAX_LEN respected
-        MODEL_MAX_LEN = 1000000
-
         if len(text) > MODEL_MAX_LEN:
             logger.warning("Text is too long, truncating to " + str(MODEL_MAX_LEN) + " characters.")
             text = text[:MODEL_MAX_LEN - 1]

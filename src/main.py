@@ -4,11 +4,14 @@ import spacy
 
 import pandas as pd
 
+from concurrent.futures import ThreadPoolExecutor
+
 from Project import Project
 from Document import Document
 from KeyWordExtraction import KeyWordExtraction
 from SDGModelWrapper import SDGModelWrapper
 
+MAX_WORKERS = 2
 PROJECT_URL = "https://search.worldbank.org/api/v3/projects?format=json&fl=*&apilang=en&id="
 DOCUMENT_URL = "https://search.worldbank.org/api/v2/wds?format=json&includepublicdocs=1&fl=docna,lang,docty,repnb,docdt,doc_authr,available_in&os=0&rows=20&os=0&apilang=en&fct=countryname&proid="
 
@@ -78,6 +81,36 @@ def read_csv(file_path):
     df = pd.read_csv(file_path, encoding='utf-8')
     return df
 
+def process_project(row, index, total_projects, keywordExtractor, sdgModel, projects, documents):
+    project_id = row['Project Id']
+    logger.info(f"Processing Project ID: {project_id}. #{index + 1} of {total_projects}")
+    project_data = get_project_data(project_id)
+
+    if project_data:
+        project = Project.from_dict(project_id, project_data)
+        project_documents = get_project_documents(project_id)
+        project.all_documents = project_documents
+        project_documents = filter_documents(project_documents)
+
+        if project_documents and len(project_documents) > 0:
+            logger.info(f"Found {len(project_documents)} documents for project ID: {project_id}")
+
+            for project_document in project_documents:
+                document = Document.from_dict(project_document, project_id)
+                documents.append(document)
+                document.get_document_text()
+                document.extract_keywords(keywordExtractor)
+                document.extract_sdg(sdgModel)
+                document.export_document_text("./export/" + project_id + "/" + document.id + ".txt")
+
+            project.documents = documents
+            projects.append(project)
+            project.export_documents_to_csv("./export/" + project_id + "/_overview_documents.csv")
+        else:
+            logger.warning(f"No documents found for project ID: {project_id}")
+    else:
+        logger.warning(f"No project data found for project ID: {project_id}")
+
 if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO,
@@ -107,35 +140,19 @@ if __name__ == "__main__":
     documents = []
 
     logger.info("Starting to process projects and documents...")
-    for index, row in worldBankExport.iterrows():
-        project_id = row['Project Id']
-        logger.info(f"Processing Project ID: {project_id}. #{index + 1} of {len(worldBankExport)}")
-        project_data = get_project_data(project_id)
+    total_projects = len(worldBankExport)
 
-        if project_data:
-            project = Project.from_dict(project_id, project_data)
-            project_documents = get_project_documents(project_id)
-            project.all_documents = project_documents
-            project_documents = filter_documents(project_documents)
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        futures = [
+            executor.submit(
+                process_project, row, index, total_projects, keywordExtractor, sdgModel, projects, documents
+            )
+            for index, row in worldBankExport.iterrows()
+        ]
 
-            if project_documents and len(project_documents) > 0:
-                logger.info(f"Found {len(project_documents)} documents for project ID: {project_id}")
-
-                for project_document in project_documents:
-                    document = Document.from_dict(project_document, project_id)
-                    documents.append(document)
-                    document.get_document_text()
-                    document.extract_keywords(keywordExtractor)
-                    document.extract_sdg(sdgModel)
-                    document.export_document_text("./export/" + project_id + "/" + document.id + ".txt")
-
-                project.documents = documents
-                projects.append(project)
-                project.export_documents_to_csv("./export/" + project_id + "/_overview_documents.csv")
-            else:
-                logger.warning(f"No documents found for project ID: {project_id}")
-        else:
-            logger.warning(f"No project data found for project ID: {project_id}")
+        # Wait for all threads to complete
+        for future in futures:
+            future.result()
 
     Project.export_all_documents_to_csv(projects)
     Project.export_projects_to_csv(projects)
