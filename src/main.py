@@ -12,6 +12,7 @@ from KeyWordExtraction import KeyWordExtraction
 from SDGModelWrapper import SDGModelWrapper
 
 MAX_WORKERS = 2
+EXPORT_PATH = "./export/"
 PROJECT_URL = "https://search.worldbank.org/api/v3/projects?format=json&fl=*&apilang=en&id="
 DOCUMENT_URL = "https://search.worldbank.org/api/v2/wds?format=json&includepublicdocs=1&fl=docna,lang,docty,repnb,docdt,doc_authr,available_in&os=0&rows=20&os=0&apilang=en&fct=countryname&proid="
 
@@ -66,7 +67,7 @@ def filter_documents(documents):
 
     # filter out non-project paper documents
     for document in documents:
-        if ("docty" in document) and (document['docty'] in ['Project Paper']):
+        if ("docty" in document) and (document['docty'] in ['Project Paper', 'Implementation Status and Results Report']):
             filtered_documents.append(document)
 
     if len(filtered_documents) == 0:
@@ -101,11 +102,11 @@ def process_project(row, index, total_projects, keywordExtractor, sdgModel, proj
                 document.get_document_text()
                 document.extract_keywords(keywordExtractor)
                 document.extract_sdg(sdgModel)
-                document.export_document_text("./export/" + project_id + "/" + document.id + ".txt")
+                document.export_document_text(EXPORT_PATH + project_id + "/" + document.id + ".txt")
 
             project.documents = documents
             projects.append(project)
-            project.export_documents_to_csv("./export/" + project_id + "/_overview_documents.csv")
+            project.export_documents_to_csv(EXPORT_PATH + project_id + "/_overview_documents.csv")
         else:
             logger.warning(f"No documents found for project ID: {project_id}")
     else:
@@ -154,7 +155,7 @@ if __name__ == "__main__":
         for future in futures:
             future.result()
 
-    Project.export_all_documents_to_csv(projects)
-    Project.export_projects_to_csv(projects)
+    Project.export_all_documents_to_csv(projects, EXPORT_PATH)
+    Project.export_projects_to_csv(projects, EXPORT_PATH)
 
     logger.info("All projects and documents have been processed and exported.")
