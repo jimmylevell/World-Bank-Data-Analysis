@@ -112,7 +112,7 @@ class Document:
             "display_title", "pdfurl", "listing_relative_url",
             "url_friendly_title", "new_url", "guid",
             "available_in", "fullavailablein", "url",
-            "text", "keywords", "sdg", "keywords"
+            "text", "extracted_keywords", "detected_sdg"
         ]
 
     def to_csv_entry(self):
@@ -125,6 +125,5 @@ class Document:
             str(self.url_friendly_title), str(self.new_url), str(self.guid),
             str(self.available_in), ", ".join(map(str, self.fullavailablein)), str(self.url),
             str(self.text[:100] + "..."), ", ".join(map(str, self.keywords)) if self.keywords else "",
-            str(self.sdg) if self.sdg else "",
-            str(self.keywords) if self.keywords else ""
+            str(self.sdg) if self.sdg else ""
         ]

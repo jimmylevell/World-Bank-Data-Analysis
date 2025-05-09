@@ -121,7 +121,7 @@ class Project:
             indicators=data.get('indicators', []),
             countrycode=data.get('countrycode')[0],
             status=data.get('status')[0],
-            status_exact=data.get('status_exact', ''),
+            status_exact=data.get('status_exact',)[0],
             mjsector=data.get('mjsector', []),
             mjsector_exact=data.get('mjsector_exact', []),
             theme=data.get('theme', []),
@@ -226,7 +226,7 @@ class Project:
             "countryhomepageurl", "curr_ida_commitment",
             "parentprojid", "parentprojid_exact",
             "projid_id_display", "public_disclosure_date",
-            "number_of_documents", "number_of_all_documents"
+            "number_of_relevant_documents", "number_of_all_documents"
         ]
 
     def to_csv_entry(self):
