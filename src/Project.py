@@ -158,7 +158,7 @@ class Project:
     @staticmethod
     def export_projects_to_csv(projects, exportFolder):
         with open(exportFolder + '/projects.csv', mode='w', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
+            writer = csv.writer(file, quoting=csv.QUOTE_ALL, escapechar='\\', doublequote=True, dialect='excel')
             # Write the header
             writer.writerow(projects[0].get_csv_header())
             for project in projects:
@@ -168,7 +168,7 @@ class Project:
     @staticmethod
     def export_all_documents_to_csv(projects, exportFolder):
         with open(exportFolder + '/documents.csv', mode='w', newline='', encoding='utf-8') as file:
-            writer = csv.writer(file)
+            writer = csv.writer(file, quoting=csv.QUOTE_ALL, escapechar='\\', doublequote=True, dialect='excel')
             # Write the header
             writer.writerow(projects[0].documents[0].get_csv_header())
             for project in projects:

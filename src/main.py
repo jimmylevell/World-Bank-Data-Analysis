@@ -11,7 +11,7 @@ from Document import Document
 from KeyWordExtraction import KeyWordExtraction
 from SDGModelWrapper import SDGModelWrapper
 
-MAX_WORKERS = 2
+MAX_WORKERS = 1
 EXPORT_PATH = "./export/"
 VOCAB_PATH = "./models/bert-base-uncased-vocab.txt"
 MODEL_PATH = './models/model_2.bin'
@@ -64,12 +64,13 @@ def filter_documents(documents):
     # get all document types for logging
     document_types = set()
     for document in documents:
-        document_types.add(document['docty'])
+        if "docty" in document:
+            document_types.add(document['docty'])
     logger.info("Document types: " + str(document_types))
 
     # filter out non-project paper documents
     for document in documents:
-        if ("docty" in document) and (document['docty'] in ['Project Paper', 'Implementation Status and Results Report']):
+        if ("docty" in document) and (document['docty'] in ['Project Paper', 'Project Information Document', 'Project Completion Report', 'Implementation Completion and Results Report', 'Implementation Status and Results Report', 'Environmental Assessment', 'Environmental and Social Commitment Plan', 'Environmental and Social Management Plan', 'Stakeholder Engagement Plan']):
             filtered_documents.append(document)
 
     if len(filtered_documents) == 0:
@@ -84,7 +85,7 @@ def read_csv(file_path):
     df = pd.read_csv(file_path, encoding='utf-8')
     return df
 
-def process_project(row, index, total_projects, keywordExtractor, sdgModel, projects, documents):
+def process_project(row, index, total_projects, keywordExtractor, sdgModel, projects):
     project_id = row['Project Id']
     logger.info(f"Processing Project ID: {project_id}. #{index + 1} of {total_projects}")
     project_data = get_project_data(project_id)
@@ -93,24 +94,29 @@ def process_project(row, index, total_projects, keywordExtractor, sdgModel, proj
         project = Project.from_dict(project_id, project_data)
         project_documents = get_project_documents(project_id)
         project.all_documents = project_documents
-        project_documents = filter_documents(project_documents)
+        project_documents_filtered = filter_documents(project_documents)
 
-        if project_documents and len(project_documents) > 0:
-            logger.info(f"Found {len(project_documents)} documents for project ID: {project_id}")
+        if project_documents_filtered and len(project_documents_filtered) > 0:
+            logger.info(f"Found {len(project_documents_filtered)} relevant documents for project ID: {project_id}")
+            documents = []
 
-            for project_document in project_documents:
+            for project_document in project_documents_filtered:
+                # Create a Document object for each document
                 document = Document.from_dict(project_document, project_id)
-                documents.append(document)
                 document.get_document_text()
                 document.extract_keywords(keywordExtractor)
                 document.extract_sdg(sdgModel)
                 document.export_document_text(EXPORT_PATH + project_id + "/" + document.id + ".txt")
 
+                # Append the document to the list
+                documents.append(document)
+
             project.documents = documents
             projects.append(project)
             project.export_documents_to_csv(EXPORT_PATH + project_id + "/_overview_documents.csv")
+            logger.info(f"Exported documents for project ID: {project_id} with {len(project.all_documents)} documents and filtered {len(project.documents)} documents.")
         else:
-            logger.warning(f"No documents found for project ID: {project_id}")
+            logger.warning(f"No relevant documents found for project ID: {project_id}")
     else:
         logger.warning(f"No project data found for project ID: {project_id}")
 
@@ -121,7 +127,8 @@ if __name__ == "__main__":
         filename='World-Bank-Data-Analysis.log',
         filemode='w',
         encoding='utf-8',
-        format='%(asctime)s %(levelname)-8s %(message)s'
+        format='%(asctime)s %(levelname)-8s %(message)s',
+        force=True
     )
 
     # load spacy
@@ -140,7 +147,6 @@ if __name__ == "__main__":
     keywordExtractor = KeyWordExtraction()
     sdgModel = SDGModelWrapper(vocab_path=VOCAB_PATH, model_path=MODEL_PATH)
     projects = []
-    documents = []
 
     logger.info("Starting to process projects and documents...")
     total_projects = len(worldBankExport)
@@ -148,7 +154,7 @@ if __name__ == "__main__":
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         futures = [
             executor.submit(
-                process_project, row, index, total_projects, keywordExtractor, sdgModel, projects, documents
+                process_project, row, index, total_projects, keywordExtractor, sdgModel, projects
             )
             for index, row in worldBankExport.iterrows()
         ]
