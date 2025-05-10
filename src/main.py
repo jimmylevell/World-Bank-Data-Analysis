@@ -13,6 +13,8 @@ from SDGModelWrapper import SDGModelWrapper
 
 MAX_WORKERS = 2
 EXPORT_PATH = "./export/"
+VOCAB_PATH = "./models/bert-base-uncased-vocab.txt"
+MODEL_PATH = './models/model_2.bin'
 PROJECT_URL = "https://search.worldbank.org/api/v3/projects?format=json&fl=*&apilang=en&id="
 DOCUMENT_URL = "https://search.worldbank.org/api/v2/wds?format=json&includepublicdocs=1&fl=docna,lang,docty,repnb,docdt,doc_authr,available_in&os=0&rows=20&os=0&apilang=en&fct=countryname&proid="
 
@@ -136,7 +138,7 @@ if __name__ == "__main__":
     worldBankExport = read_csv("./import/export.csv")
 
     keywordExtractor = KeyWordExtraction()
-    sdgModel = SDGModelWrapper()
+    sdgModel = SDGModelWrapper(vocab_path=VOCAB_PATH, model_path=MODEL_PATH)
     projects = []
     documents = []
 

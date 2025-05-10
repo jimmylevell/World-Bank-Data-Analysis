@@ -29,10 +29,10 @@ import torch
 
 
 class SDGModelWrapper:
-    def __init__(self):
+    def __init__(self, vocab_path: str, model_path: str):
         #LOAD MODEL
         self.tokenizer = tokenizers.BertWordPieceTokenizer(
-            './models/bert-base-uncased-vocab.txt',
+            vocab_path,
             lowercase=True
         )
 
@@ -40,7 +40,7 @@ class SDGModelWrapper:
         model_config.output_hidden_states = True
         self.model = SDGModel(conf=model_config)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model.load_state_dict(torch.load('./models/model_2.bin', map_location=self.device, weights_only=False)['model_state_dict'])
+        self.model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=False)['model_state_dict'])
 
         self.model.eval()
         self.model.to(self.device)
